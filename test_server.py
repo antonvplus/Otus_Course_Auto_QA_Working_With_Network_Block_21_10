@@ -8,24 +8,26 @@ while True:
     message = ''
     clientConnection, clientAddress = my_socket.accept()
     message += clientConnection.recv(1024).decode()
-    if not message.split('\n')[0].split()[1][-3:].isdigit():
-        status_line = f"HTTP/1.1 {HTTPStatus.OK} {HTTPStatus.OK.phrase}\r\n"
-        headers = (
-            f"Request Method: {message.split('\n')[0].split()[0]}\r\n"
-            f"Request Source: {clientAddress}\r\n"
-            f"Response Status: {HTTPStatus.OK} {HTTPStatus.OK.phrase}\r\n"
-            f"header-name: {message.split('\n')[2:]}\r\n"
-            f"\r\n"
-        )
-    else:
+    try:
         status_line = f"HTTP/1.1 {HTTPStatus(int(message.split('\n')[0].split()[1][-3:]))} {HTTPStatus(int(message.split('\n')[0].split()[1][-3:])).phrase}\r\n"
-        headers = (
+        body = (
             f"Request Method: {message.split('\n')[0].split()[0]}\r\n"
             f"Request Source: {clientAddress}\r\n"
             f"Response Status: {HTTPStatus(int(message.split('\n')[0].split()[1][-3:]))} {HTTPStatus(int(message.split('\n')[0].split()[1][-3:])).phrase}\r\n"
-            f"header-name: {message.split('\n')[2:]}\r\n"
-            f"\r\n"
         )
-    response_bytes = status_line.encode() + b"\r\n" + headers.encode()
+    except ValueError:
+        status_line = f"HTTP/1.1 {HTTPStatus.OK} {HTTPStatus.OK.phrase}\r\n"
+        body = (
+            f"Request Method: {message.split('\n')[0].split()[0]}\r\n"
+            f"Request Source: {clientAddress}\r\n"
+            f"Response Status: {HTTPStatus.OK} {HTTPStatus.OK.phrase}\r\n"
+        )
+    for body_line in message.split('\n')[2:]:
+        body += (f"{body_line}\n")
+    headers = (
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Connection: close\r\n"
+    )
+    response_bytes = status_line.encode() + headers.encode() + b"\r\n" + body.encode()
     clientConnection.send(response_bytes)
     clientConnection.close()
