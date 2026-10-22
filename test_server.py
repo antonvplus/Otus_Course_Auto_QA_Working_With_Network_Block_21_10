@@ -15,7 +15,7 @@ while True:
             f"Request Source: {clientAddress}\r\n"
             f"Response Status: {HTTPStatus.OK} {HTTPStatus.OK.phrase}\r\n"
             f"header-name: {message.split('\n')[2:]}\r\n"
-            f"\r\n"  # ВАЖНО: пустая строка отделяет заголовки от тела
+            f"\r\n"
         )
     else:
         status_line = f"HTTP/1.1 {HTTPStatus(int(message.split('\n')[0].split()[1][-3:]))} {HTTPStatus(int(message.split('\n')[0].split()[1][-3:])).phrase}\r\n"
